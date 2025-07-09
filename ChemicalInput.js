@@ -9,15 +9,11 @@ const ChemicalInput = ({ onPredict }) => {
     return chemicalFormulaRegex.test(value) && value.trim().length > 0;
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const valid = validateComposition(composition);
-    setIsValid(valid);
-
-    if (valid) {
-      onPredict(composition);
-    }
-  };
+const handleSubmit = (e) => {
+  e.preventDefault();
+  console.log('Submitting:', composition); // <-- Add this
+  onPredict(composition);
+};
 
   const handleInputChange = (e) => {
     const value = e.target.value;
