@@ -4,6 +4,7 @@ import pandas as pd
 import math
 import re
 from flask_cors import CORS
+import numpy as np
 
 # Load your model and preprocessor
 with open('model.pkl', 'rb') as f:
@@ -255,6 +256,15 @@ def extract_features_from_composition(composition, temperature=25.0):
 
     return features
 
+def inverse_log_transform(log_values, base=10, epsilon=1e-20):
+    """
+    Convert log-transformed values back to original scale
+    """
+    if base == 10:
+        return np.power(10, log_values)
+    else:
+        return np.exp(log_values)
+
 app = Flask(__name__)
 CORS(app)
 
@@ -262,10 +272,29 @@ CORS(app)
 def predict():
     data = request.get_json()
     composition = data.get('composition')
-    # Your ML model prediction logic here
-    prediction = "dummy_result"  # Replace with your model's prediction
-    return jsonify({'prediction': prediction})
+
+    # 1. Extract features from the composition string
+    features = extract_features_from_composition(composition)
+    feature_df = pd.DataFrame([features])
+
+    # 2. Preprocess features (use the loaded preprocessor)
+    X = preprocessor.transform(feature_df)
+
+    # 3. Make predictions with all models (ensemble)
+    preds = []
+    for model in models.values():
+        pred = model.predict(X)
+        preds.append(pred)
+    # 4. Average predictions (your models are trained on log scale, so inverse transform)
+    pred_log = np.mean(preds, axis=0)
+    pred_final = float(inverse_log_transform(pred_log)[0])
+
+    # 5. Return as JSON
+    return jsonify({'prediction': pred_final})
+
+@app.route('/')
+def home():
+    return "<h2>ML API is running! Use /predict with POST requests.</h2>"
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000, debug=True)
-
