@@ -1,0 +1,114 @@
+
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { ArrowRight, Zap } from 'lucide-react';
+
+interface ChemicalInputProps {
+onPredict: (composition: string) => void;
+}
+
+const ChemicalInput = ({ onPredict }: ChemicalInputProps) => {
+const [composition, setComposition] = useState('');
+const [isValid, setIsValid] = useState(true);
+
+const validateComposition = (value: string) => {
+// Basic validation for chemical formula (letters, numbers, parentheses)
+const chemicalFormulaRegex = /^[A-Za-z0-9().\s]+$/;
+return chemicalFormulaRegex.test(value) && value.trim().length > 0;
+};
+
+const handleSubmit = (e: React.FormEvent) => {
+e.preventDefault();
+const valid = validateComposition(composition);
+setIsValid(valid);
+
+if (valid) {
+onPredict(composition);
+}
+};
+
+const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+const value = e.target.value;
+setComposition(value);
+if (!isValid && value.trim().length > 0) {
+setIsValid(validateComposition(value));
+}
+};
+
+return (
+<div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+<div className="w-full max-w-2xl">
+<div className="text-center mb-8">
+<div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-full mb-4">
+<Zap className="w-8 h-8 text-white" />
+</div>
+<h1 className="text-4xl font-bold text-gray-900 mb-2">
+Ionic Conductivity Predictor
+</h1>
+<p className="text-xl text-gray-600">
+Predict the ionic conductivity of solid state electrolytes using machine learning
+</p>
+</div>
+
+<Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
+<CardHeader className="text-center">
+<CardTitle className="text-2xl text-gray-800">
+Enter Chemical Composition
+</CardTitle>
+<CardDescription className="text-lg">
+Input the chemical formula of your solid state electrolyte
+</CardDescription>
+</CardHeader>
+<CardContent>
+<form onSubmit={handleSubmit} className="space-y-6">
+<div className="space-y-2">
+<Label htmlFor="composition" className="text-base font-medium">
+Chemical Composition
+</Label>
+<Input
+id="composition"
+type="text"
+placeholder="e.g., Li7La3Zr2O12, Li10GeP2S12"
+value={composition}
+onChange={handleInputChange}
+className={`text-lg h-12 ${
+!isValid ? 'border-red-500 focus:border-red-500' : 'border-gray-300'
+}`}
+/>
+{!isValid && (
+<p className="text-red-500 text-sm">
+Please enter a valid chemical formula
+</p>
+)}
+<p className="text-gray-500 text-sm">
+Enter standard chemical notation (e.g., subscripts as numbers)
+</p>
+</div>
+
+<Button
+type="submit"
+size="lg"
+className="w-full h-12 text-lg font-semibold bg-blue-600 hover:bg-blue-700 transition-all duration-200 transform hover:scale-105"
+disabled={!composition.trim()}
+>
+Predict Conductivity
+<ArrowRight className="ml-2 w-5 h-5" />
+</Button>
+</form>
+</CardContent>
+</Card>
+
+<div className="mt-8 text-center">
+<p className="text-gray-600">
+Powered by extensive electrolyte databases including OBELiX and Liverpool Ionics
+</p>
+</div>
+</div>
+</div>
+);
+};
+
+export default ChemicalInput;
